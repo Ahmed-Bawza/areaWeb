@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processed Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .image-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .image-container img {
+            width: 500px;  /* Adjust width as needed for medium size */
+            height: 500px;
+            margin-bottom: 20px;
+        }
+        h1, h2, h3 {
+            text-align: center;
+        }
+        #slider-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Processed Images</h1>
+    <div id="slider-container">
+        <label for="threshold">Threshold: <span id="thresholdValue">{{ request.form['threshold'] }}</span></label>
+        <input type="range" id="threshold" name="threshold" min="0" max="255" value="{{ request.form['threshold'] }}" oninput="updateThresholdValue(this.value)">
+    </div>
+    <div class="image-container">
+        <img id="thresholdImage" src="{{ url_for('send_processed_file', filename='thresholded.jpg') }}" alt="Threshold Image">
+        <img id="contourImage" src="{{ url_for('send_processed_file', filename='contour.jpg') }}" alt="Contour Image">
+        <!-- <img id="combinedImage" src="{{ url_for('send_processed_file', filename='combined.jpg') }}" alt="Combined Image with Grid"> -->
+    </div>
+    <h3>Area of the Coral: {{ contour_area }} cm²</h3>
+    <br><br>
+    <a href="/">Go Back</a>
+
+    <script>
+        function updateThresholdValue(value) {
+            document.getElementById('thresholdValue').textContent = value;
+            const imageFilename = "{{ image_filename }}";
+            fetch('/update_threshold', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    threshold: value,
+                    image_filename: imageFilename
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('combinedImage').src = '/' + data.combined_image;
+            });
+        }
+    </script>
+</body>
+</html>
