@@ -41,7 +41,7 @@
     <div class="image-container">
         <img id="thresholdImage" src="{{ url_for('send_processed_file', filename='thresholded.jpg') }}" alt="Threshold Image">
         <img id="contourImage" src="{{ url_for('send_processed_file', filename='contour.jpg') }}" alt="Contour Image">
-        <!-- <img id="combinedImage" src="{{ url_for('send_processed_file', filename='combined.jpg') }}" alt="Combined Image with Grid"> -->
+        <img id="combinedImage" src="{{ url_for('send_processed_file', filename='combined.jpg') }}" alt="Combined Image with Grid">
     </div>
     <h3>Area of the Coral: {{ contour_area }} cm²</h3>
     <br><br>
