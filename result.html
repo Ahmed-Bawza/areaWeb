@@ -19,8 +19,8 @@
             flex-wrap: wrap;
         }
         .image-container img {
-            width: 500px;  /* Adjust width as needed for medium size */
-            height: 500px;
+            width: 300px;  /* Adjust width as needed for medium size */
+            height: auto;
             margin-bottom: 20px;
         }
         h1, h2, h3 {
@@ -35,36 +35,38 @@
 <body>
     <h1>Processed Images</h1>
     <div id="slider-container">
-        <label for="threshold">Threshold: <span id="thresholdValue">{{ request.form['threshold'] }}</span></label>
-        <input type="range" id="threshold" name="threshold" min="0" max="255" value="{{ request.form['threshold'] }}" oninput="updateThresholdValue(this.value)">
+        <label for="threshold">Threshold: <span id="thresholdValue">{{ initial_threshold }}</span></label>
+        <input type="range" id="threshold" name="threshold" min="0" max="255" value="{{ initial_threshold }}" oninput="updateThresholdValue(this.value)">
     </div>
     <div class="image-container">
-        <img id="thresholdImage" src="{{ url_for('send_processed_file', filename='thresholded.jpg') }}" alt="Threshold Image">
-        <img id="contourImage" src="{{ url_for('send_processed_file', filename='contour.jpg') }}" alt="Contour Image">
-        <img id="combinedImage" src="{{ url_for('send_processed_file', filename='combined.jpg') }}" alt="Combined Image with Grid">
+        <img id="combinedImage" src="{{ url_for('send_processed_file', filename=combined_image) }}" alt="Combined Image with Grid">
     </div>
-    <h3>Area of the Coral: {{ contour_area }} cm²</h3>
+    <h3>Area of the Largest Contour: <span id="contourArea">{{ contour_area }}</span> cm²</h3>
     <br><br>
     <a href="/">Go Back</a>
 
     <script>
+        let debounceTimeout;
         function updateThresholdValue(value) {
             document.getElementById('thresholdValue').textContent = value;
             const imageFilename = "{{ image_filename }}";
-            fetch('/update_threshold', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    threshold: value,
-                    image_filename: imageFilename
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                fetch('/update_threshold', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        threshold: value,
+                        image_filename: imageFilename
+                    })
                 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('combinedImage').src = '/' + data.combined_image;
-            });
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('combinedImage').src = '/' + data.combined_image + '?' + new Date().getTime();
+                });
+            }, 200); // Adjust debounce timeout as needed
         }
     </script>
 </body>

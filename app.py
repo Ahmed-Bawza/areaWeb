@@ -58,15 +58,10 @@ def process_image(image_path, threshold):
     # Overlay the mask on the contour image
     combined_image = cv2.addWeighted(contour_image, 0.8, mask, 0.2, 0)
 
-    thresh_image_path = os.path.join(app.config['PROCESSED_FOLDER'], 'thresholded.jpg')
-    contour_image_path = os.path.join(app.config['PROCESSED_FOLDER'], 'contour.jpg')
     combined_image_path = os.path.join(app.config['PROCESSED_FOLDER'], 'combined.jpg')
-    
-    cv2.imwrite(thresh_image_path, thresh_image)
-    cv2.imwrite(contour_image_path, contour_image)
     cv2.imwrite(combined_image_path, combined_image)
     
-    return thresh_image_path, contour_image_path, combined_image_path, contour_area_cm2
+    return combined_image_path, contour_area_cm2
 
 @app.route('/')
 def index():
@@ -75,28 +70,33 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
+        app.logger.error('No file part')
         return redirect(request.url)
     file = request.files['file']
     if file.filename == '':
+        app.logger.error('No selected file')
         return redirect(request.url)
     
     if file:
         threshold = int(request.form['threshold'])
+        app.logger.info(f'File uploaded: {file.filename}')
+        app.logger.info(f'Threshold: {threshold}')
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
         
-        thresh_image_path, contour_image_path, combined_image_path, contour_area_cm2 = process_image(file_path, threshold)
+        combined_image_path, contour_area_cm2 = process_image(file_path, threshold)
         
-        return render_template('result.html', threshold_image=thresh_image_path, contour_image=contour_image_path, combined_image=combined_image_path, contour_area=contour_area_cm2, image_filename=file.filename)
+        return render_template('result.html', combined_image=combined_image_path, contour_area=contour_area_cm2, image_filename=file.filename, initial_threshold=threshold)
 
 @app.route('/update_threshold', methods=['POST'])
 def update_threshold():
     data = request.get_json()
     threshold = int(data['threshold'])
     image_filename = data['image_filename']
+    app.logger.info(f'Updating threshold to {threshold} for file {image_filename}')
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
     
-    _, _, combined_image_path, _ = process_image(file_path, threshold)
+    combined_image_path, _ = process_image(file_path, threshold)
     
     return jsonify({'combined_image': combined_image_path})
 
