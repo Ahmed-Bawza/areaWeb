@@ -61,6 +61,8 @@ def process_image(image_path, threshold):
     combined_image_path = os.path.join(app.config['PROCESSED_FOLDER'], 'combined.jpg')
     cv2.imwrite(combined_image_path, combined_image)
     
+    print(f"Image saved to {combined_image_path}")
+    
     return combined_image_path, contour_area_cm2
 
 @app.route('/')

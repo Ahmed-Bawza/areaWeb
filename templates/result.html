@@ -19,7 +19,7 @@
             flex-wrap: wrap;
         }
         .image-container img {
-            width: 300px;  /* Adjust width as needed for medium size */
+            width: 300px;
             height: auto;
             margin-bottom: 20px;
         }
@@ -36,7 +36,7 @@
     <h1>Processed Images</h1>
     <div id="slider-container">
         <label for="threshold">Threshold: <span id="thresholdValue">{{ initial_threshold }}</span></label>
-        <input type="range" id="threshold" name="threshold" min="0" max="255" value="{{ initial_threshold }}" oninput="updateThresholdValue(this.value)">
+        <input type="range" id="threshold" name="threshold" min="0" max="255" value="{{ initial_threshold }}" oninput="updateThresholdValue(this.value, '{{ image_filename }}')">
     </div>
     <div class="image-container">
         <img id="combinedImage" src="{{ url_for('send_processed_file', filename=combined_image) }}" alt="Combined Image with Grid">
@@ -45,29 +45,6 @@
     <br><br>
     <a href="/">Go Back</a>
 
-    <script>
-        let debounceTimeout;
-        function updateThresholdValue(value) {
-            document.getElementById('thresholdValue').textContent = value;
-            const imageFilename = "{{ image_filename }}";
-            clearTimeout(debounceTimeout);
-            debounceTimeout = setTimeout(() => {
-                fetch('/update_threshold', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        threshold: value,
-                        image_filename: imageFilename
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('combinedImage').src = '/' + data.combined_image + '?' + new Date().getTime();
-                });
-            }, 200); // Adjust debounce timeout as needed
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
